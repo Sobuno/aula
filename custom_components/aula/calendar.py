@@ -76,11 +76,10 @@ class CalendarData:
         self.all_events = []
         self._client = hass.data[DOMAIN]["client"]
 
-    def parseCalendarData(self,i=None):
+    async def parseCalendarData(self,i=None):
         import json
         try:
-            with open('skoleskema.json', 'r') as openfile:
-                _data = json.load(openfile)
+            _data = await self._hass.async_add_executor_job(self._read_file, 'skoleskema.json')
             data = json.loads(_data)
         except:
             _LOGGER.warn("Could not open and parse file skoleskema.json!")
@@ -118,8 +117,12 @@ class CalendarData:
                 events.append(event)
         return events
 
+    def _read_file(self, file_path):
+        with open(file_path, 'r') as openfile:
+            return openfile.read()
+
     async def async_get_events(self, hass, start_date, end_date):
-        all_events = self.parseCalendarData()
+        all_events = await self.parseCalendarData()
         filtered_events = []
         
         for event in all_events:
